@@ -1,0 +1,13 @@
+{
+    "folders": [
+        {
+            "name": "gym-app-ui",
+            "path": "."
+        },
+        {
+            "name": "gym-app-backend",
+            "path": "../gym-app"
+        }
+    ],
+    "settings": {}
+}
