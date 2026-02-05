@@ -218,4 +218,18 @@ export const attendanceService = {
     });
   },
 
+  // Export inactive members to Excel
+  exportInactiveMembersToExcel: (days) => {
+    return api.get(`/report/export/inactive-members/excel?days=${days}`, {
+      responseType: 'blob'
+    });
+  },
+
+  // Export inactive members to PDF
+  exportInactiveMembersToPdf: (days) => {
+    return api.get(`/report/export/inactive-members/pdf?days=${days}`, {
+      responseType: 'blob'
+    });
+  },
+
 };

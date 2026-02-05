@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Search, Calendar, User, Clock, AlertTriangle, CheckCircle, Eye } from 'lucide-react';
+import { Upload, Search, Calendar, User, Clock, AlertTriangle, CheckCircle, Eye, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import { attendanceService } from '../services/attendanceService';
@@ -300,6 +300,53 @@ const Attendance = () => {
     setInactivePageSize(sizeNum);
     setInactiveCurrentPage(0);
     handleInactiveFilter(activeInactiveFilter, 0);
+  };
+
+  // Export functions
+  // eslint-disable-next-line no-unused-vars
+  const handleExportToExcel = async (days) => {
+    try {
+      const response = await attendanceService.exportInactiveMembersToExcel(days);
+      
+      // Create blob and download
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inactive_members_${days}_days.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Excel file downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to export to Excel: ' + (error.response?.data || error.message));
+    }
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const handleExportToPdf = async (days) => {
+    try {
+      const response = await attendanceService.exportInactiveMembersToPdf(days);
+      
+      // Create blob and download
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inactive_members_${days}_days.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('PDF file downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to export to PDF: ' + (error.response?.data || error.message));
+    }
   };
 
   const handleActivePageChange = (page) => {
@@ -667,6 +714,31 @@ const Attendance = () => {
               >
                 Clear Selection
               </button>
+              
+              {/* Export buttons - only show when there are results */}
+              {activeInactiveFilter && inactiveResults && inactiveResults.employees?.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Export:</span>
+                  <button
+                    onClick={() => handleExportToExcel(activeInactiveFilter === '7days' ? 7 : 
+                                                      activeInactiveFilter === '15days' ? 15 : 
+                                                      activeInactiveFilter === '30days' ? 30 : 60)}
+                    className="btn-secondary flex items-center text-sm"
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Excel
+                  </button>
+                  <button
+                    onClick={() => handleExportToPdf(activeInactiveFilter === '7days' ? 7 : 
+                                                    activeInactiveFilter === '15days' ? 15 : 
+                                                    activeInactiveFilter === '30days' ? 30 : 60)}
+                    className="btn-secondary flex items-center text-sm"
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    PDF
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

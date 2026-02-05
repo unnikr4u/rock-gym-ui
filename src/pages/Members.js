@@ -18,6 +18,10 @@ const Members = () => {
   const [uploadFile, setUploadFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   
+  // Access file upload states
+  const [accessFile, setAccessFile] = useState(null);
+  const [uploadingAccess, setUploadingAccess] = useState(false);
+  
   // Pagination states
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -65,8 +69,8 @@ const Members = () => {
   );
 
   const { data: activeMembers, isLoading: loadingActive, refetch: refetchActive } = useQuery(
-    ['activeMembers', currentPage, pageSize, sortBy, sortDir],
-    () => memberService.getActiveMembersPaginated(currentPage, pageSize, sortBy, sortDir),
+    ['activeMembers', currentPage, pageSize, sortBy, sortDir, debouncedSearchTerm],
+    () => memberService.getActiveMembersPaginated(currentPage, pageSize, sortBy, sortDir, debouncedSearchTerm),
     { enabled: activeTab === 'view' && filter === 'active', keepPreviousData: true }
   );
 
@@ -79,7 +83,7 @@ const Members = () => {
       case 'unattended':
         return unattendedMembers?.data?.content || [];
       case 'active':
-        return activeMembers?.data?.employees || [];
+        return activeMembers?.data?.content || [];
       case 'admins':
         return adminMembers?.data?.content || [];
       default:
@@ -114,10 +118,10 @@ const Members = () => {
     }
     if (filter === 'active' && activeMembers?.data) {
       return {
-        totalElements: activeMembers.data.count,
+        totalElements: activeMembers.data.totalElements,
         totalPages: activeMembers.data.totalPages,
-        currentPage: activeMembers.data.pageNumber,
-        pageSize: activeMembers.data.pageSize
+        currentPage: activeMembers.data.number,
+        pageSize: activeMembers.data.size
       };
     }
     return null;
@@ -193,6 +197,31 @@ const Members = () => {
       toast.error('Failed to upload members: ' + (error.response?.data || error.message));
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleAccessFileUpload = async () => {
+    if (!accessFile) {
+      toast.error('Please select an access file to upload');
+      return;
+    }
+
+    setUploadingAccess(true);
+    try {
+      await memberService.uploadAccessFile(accessFile);
+      toast.success('Access dates updated successfully!');
+      setAccessFile(null);
+      // Refetch data
+      refetchAll();
+      refetchPaid();
+      refetchUnpaid();
+      refetchUnattended();
+      refetchActive();
+      refetchAdmins();
+    } catch (error) {
+      toast.error('Failed to upload access file: ' + (error.response?.data || error.message));
+    } finally {
+      setUploadingAccess(false);
     }
   };
 
@@ -321,7 +350,7 @@ const Members = () => {
                       onClick={() => handleSort('expiryFrom')}
                     >
                       <div className="flex items-center space-x-1">
-                        <span>{filter === 'active' ? 'Weight' : 'Expiry From'}</span>
+                        <span>{filter === 'active' ? 'Expiry From' : 'Expiry From'}</span>
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </th>
@@ -330,7 +359,7 @@ const Members = () => {
                       onClick={() => handleSort('expiryTo')}
                     >
                       <div className="flex items-center space-x-1">
-                        <span>{filter === 'active' ? 'Last Punch' : 'Expiry To'}</span>
+                        <span>{filter === 'active' ? 'Expiry To' : 'Expiry To'}</span>
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </th>
@@ -348,21 +377,15 @@ const Members = () => {
                         {member.doj ? new Date(member.doj).toLocaleDateString() : '-'}
                       </td>
                       <td className="table-cell">
-                        {filter === 'active' ? 
-                          (member.weight ? `${member.weight} kg` : '-') :
-                          (member.expiryFrom ? new Date(member.expiryFrom).toLocaleDateString() : '-')
-                        }
+                        {member.expiryFrom ? new Date(member.expiryFrom).toLocaleDateString() : '-'}
                       </td>
                       <td className="table-cell">
-                        {filter === 'active' ?
-                          (member.lastPunchDate ? new Date(member.lastPunchDate).toLocaleString() : '-') :
-                          (member.expiryTo ? new Date(member.expiryTo).toLocaleDateString() : '-')
-                        }
+                        {member.expiryTo ? new Date(member.expiryTo).toLocaleDateString() : '-'}
                       </td>
                       <td className="table-cell">
                         {filter === 'active' ? (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            Active (Last 7 days)
+                            Active (Valid Membership)
                           </span>
                         ) : (
                           <span
@@ -470,8 +493,60 @@ const Members = () => {
             </div>
           </div>
 
-          {/* Create/Update Member Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Upload Access Dates Section */}
+          <div className="card">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <Upload className="h-5 w-5 mr-2 text-purple-500" />
+              Update Member Access Dates
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Upload an Excel file to update membership expiry dates for existing members.
+            </p>
+            
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={(e) => setAccessFile(e.target.files[0])}
+                  className="hidden"
+                  id="access-upload"
+                />
+                <label
+                  htmlFor="access-upload"
+                  className="btn-secondary cursor-pointer flex items-center"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Choose Access File
+                </label>
+                {accessFile && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">{accessFile.name}</span>
+                    <button
+                      onClick={handleAccessFileUpload}
+                      disabled={uploadingAccess}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {uploadingAccess ? 'Updating...' : 'Update Access Dates'}
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              {accessFile && (
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <h4 className="font-medium text-purple-900 mb-2">Access File Selected:</h4>
+                  <p className="text-sm text-purple-700">{accessFile.name}</p>
+                  <p className="text-xs text-purple-600 mt-1">
+                    Click "Update Access Dates" to process the file and update member expiry dates.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Create/Update/Delete Member Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="card">
               <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                 <Plus className="h-5 w-5 mr-2 text-green-500" />
@@ -505,6 +580,23 @@ const Members = () => {
                 Search & Update
               </Link>
             </div>
+
+            <div className="card">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <Search className="h-5 w-5 mr-2 text-red-500" />
+                Delete Member
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Search and delete existing member from the system.
+              </p>
+              <Link 
+                to="/members/delete"
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 w-full flex items-center justify-center"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search & Delete
+              </Link>
+            </div>
           </div>
 
           {/* Instructions Section */}
@@ -512,12 +604,22 @@ const Members = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-4">Instructions</h3>
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Excel File Format:</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Member Excel File Format:</h4>
                 <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                   <li>The Excel file should contain columns for member information</li>
                   <li>Required fields: ID, Name, Contact Number, Date of Joining</li>
                   <li>Optional fields: Date of Birth, Weight, Height, Blood Group</li>
                   <li>The system will create new members or update existing ones based on ID</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Access Dates Excel File Format:</h4>
+                <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                  <li>The Excel file should contain member access/expiry date information</li>
+                  <li>Required fields: Member ID, Expiry From Date, Expiry To Date</li>
+                  <li>The system will update existing members' membership dates based on ID</li>
+                  <li>Only existing members will be updated - new members won't be created</li>
                 </ul>
               </div>
               

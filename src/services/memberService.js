@@ -41,11 +41,13 @@ export const memberService = {
     });
   },
 
-  // Get active members with pagination (last 7 days)
-  getActiveMembersPaginated: (page = 0, size = 10, sortBy = 'lastPunchTime', sortDir = 'desc') => {
-    return api.get('/report/active-last-7-days-paginated', {
-      params: { page, size }
-    });
+  // Get active members with pagination (valid membership)
+  getActiveMembersPaginated: (page = 0, size = 10, sortBy = 'id', sortDir = 'asc', search = '') => {
+    const params = { page, size, sortBy, sortDir };
+    if (search && search.trim()) {
+      params.search = search.trim();
+    }
+    return api.get('/members/active-members', { params });
   },
 
   // Get employee monthly punch summary
@@ -61,6 +63,11 @@ export const memberService = {
   // Update existing member
   updateMember: (memberId, memberData) => {
     return api.put(`/members/${memberId}`, memberData);
+  },
+
+  // Delete member
+  deleteMember: (memberId) => {
+    return api.delete(`/members/${memberId}`);
   },
 
   // Upload members Excel file

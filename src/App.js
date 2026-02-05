@@ -6,6 +6,7 @@ import Members from './pages/Members';
 import MemberDetail from './pages/MemberDetail';
 import CreateMember from './pages/CreateMember';
 import UpdateMember from './pages/UpdateMember';
+import DeleteMember from './pages/DeleteMember';
 import PunchRecords from './pages/PunchRecords';
 import Attendance from './pages/Attendance';
 import Payments from './pages/Payments';
@@ -22,6 +23,7 @@ function App() {
         <Route path="/members" element={<Members />} />
         <Route path="/members/create" element={<CreateMember />} />
         <Route path="/members/update" element={<UpdateMember />} />
+        <Route path="/members/delete" element={<DeleteMember />} />
         <Route path="/members/:id" element={<MemberDetail />} />
         <Route path="/members/:id/punch-records" element={<PunchRecords />} />
         <Route path="/attendance" element={<Attendance />} />
