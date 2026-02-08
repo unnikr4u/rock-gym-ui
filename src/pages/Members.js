@@ -40,26 +40,24 @@ const Members = () => {
 
   const { data: allMembers, isLoading: loadingAll, refetch: refetchAll } = useQuery(
     ['allMembers', currentPage, pageSize, sortBy, sortDir, debouncedSearchTerm],
-    () => memberService.getAllMembers(currentPage, pageSize, sortBy, sortDir, false, debouncedSearchTerm),
-    { enabled: activeTab === 'view' && filter === 'all', keepPreviousData: true }
+    () => {
+      console.log('Calling getAllMembers with:', { currentPage, pageSize, sortBy, sortDir, debouncedSearchTerm });
+      return memberService.getAllMembers(currentPage, pageSize, sortBy, sortDir, false, debouncedSearchTerm);
+    },
+    { 
+      enabled: activeTab === 'view' && filter === 'all', 
+      keepPreviousData: true,
+      onSuccess: (data) => {
+        console.log('All members API response:', data); // Debug log
+        console.log('Response data structure:', JSON.stringify(data, null, 2)); // Detailed structure
+      }
+    }
   );
 
   const { data: adminMembers, isLoading: loadingAdmins, refetch: refetchAdmins } = useQuery(
     ['adminMembers', currentPage, pageSize, sortBy, sortDir, debouncedSearchTerm],
     () => memberService.getAdminMembers(currentPage, pageSize, sortBy, sortDir, debouncedSearchTerm),
     { enabled: activeTab === 'view' && filter === 'admins', keepPreviousData: true }
-  );
-
-  const { data: paidMembers, isLoading: loadingPaid, refetch: refetchPaid } = useQuery(
-    'paidMembers',
-    () => memberService.getPaidMembers(),
-    { enabled: activeTab === 'view' && filter === 'paid' }
-  );
-
-  const { data: unpaidMembers, isLoading: loadingUnpaid, refetch: refetchUnpaid } = useQuery(
-    'unpaidMembers',
-    () => memberService.getUnpaidMembers(),
-    { enabled: activeTab === 'view' && filter === 'unpaid' }
   );
 
   const { data: unattendedMembers, isLoading: loadingUnattended, refetch: refetchUnattended } = useQuery(
@@ -76,10 +74,6 @@ const Members = () => {
 
   const getCurrentData = () => {
     switch (filter) {
-      case 'paid':
-        return paidMembers?.data?.list || [];
-      case 'unpaid':
-        return unpaidMembers?.data?.list || [];
       case 'unattended':
         return unattendedMembers?.data?.content || [];
       case 'active':
@@ -87,57 +81,62 @@ const Members = () => {
       case 'admins':
         return adminMembers?.data?.content || [];
       default:
+        // For 'all' filter, the data is in the content array
         return allMembers?.data?.content || [];
     }
   };
 
   const getPaginationData = () => {
     if (filter === 'all' && allMembers?.data) {
+      console.log('All members pagination data:', allMembers.data); // Debug log
+      // The API response structure is: { content: [...], page: { totalElements: 159, ... } }
+      const pageData = allMembers.data.page || allMembers.data; // Handle both structures
       return {
-        totalElements: allMembers.data.totalElements,
-        totalPages: allMembers.data.totalPages,
-        currentPage: allMembers.data.number,
-        pageSize: allMembers.data.size
+        totalElements: pageData.totalElements || 0,
+        totalPages: pageData.totalPages || 0,
+        currentPage: currentPage, // Use frontend state instead of backend response
+        pageSize: pageSize // Use frontend state instead of backend response
       };
     }
     if (filter === 'admins' && adminMembers?.data) {
+      console.log('Admin members pagination data:', adminMembers.data); // Debug log
+      const pageData = adminMembers.data.page || adminMembers.data;
       return {
-        totalElements: adminMembers.data.totalElements,
-        totalPages: adminMembers.data.totalPages,
-        currentPage: adminMembers.data.number,
-        pageSize: adminMembers.data.size
+        totalElements: pageData.totalElements || 0,
+        totalPages: pageData.totalPages || 0,
+        currentPage: currentPage, // Use frontend state
+        pageSize: pageSize // Use frontend state
       };
     }
     if (filter === 'unattended' && unattendedMembers?.data) {
+      console.log('Unattended members pagination data:', unattendedMembers.data); // Debug log
+      const pageData = unattendedMembers.data.page || unattendedMembers.data;
       return {
-        totalElements: unattendedMembers.data.totalElements,
-        totalPages: unattendedMembers.data.totalPages,
-        currentPage: unattendedMembers.data.number,
-        pageSize: unattendedMembers.data.size
+        totalElements: pageData.totalElements || 0,
+        totalPages: pageData.totalPages || 0,
+        currentPage: currentPage, // Use frontend state
+        pageSize: pageSize // Use frontend state
       };
     }
     if (filter === 'active' && activeMembers?.data) {
+      console.log('Active members pagination data:', activeMembers.data); // Debug log
+      const pageData = activeMembers.data.page || activeMembers.data;
       return {
-        totalElements: activeMembers.data.totalElements,
-        totalPages: activeMembers.data.totalPages,
-        currentPage: activeMembers.data.number,
-        pageSize: activeMembers.data.size
+        totalElements: pageData.totalElements || 0,
+        totalPages: pageData.totalPages || 0,
+        currentPage: currentPage, // Use frontend state
+        pageSize: pageSize // Use frontend state
       };
     }
+    console.log('No pagination data found for filter:', filter); // Debug log
     return null;
   };
 
-  const isLoading = loadingAll || loadingPaid || loadingUnpaid || loadingUnattended || loadingActive || loadingAdmins;
+  const isLoading = loadingAll || loadingUnattended || loadingActive || loadingAdmins;
   const members = getCurrentData();
 
   // For paginated results (all, admins, unattended, active), use the data directly from backend
-  // For non-paginated results (paid, unpaid), apply client-side filtering
-  const displayMembers = (filter === 'all' || filter === 'admins' || filter === 'unattended' || filter === 'active') 
-    ? members 
-    : members.filter(member =>
-        member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.id?.toString().includes(searchTerm)
-      );
+  const displayMembers = members;
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
@@ -188,8 +187,6 @@ const Members = () => {
       setUploadFile(null);
       // Refetch data
       refetchAll();
-      refetchPaid();
-      refetchUnpaid();
       refetchUnattended();
       refetchActive();
       refetchAdmins();
@@ -213,8 +210,6 @@ const Members = () => {
       setAccessFile(null);
       // Refetch data
       refetchAll();
-      refetchPaid();
-      refetchUnpaid();
       refetchUnattended();
       refetchActive();
       refetchAdmins();
@@ -277,8 +272,6 @@ const Members = () => {
                 <div className="flex space-x-2">
                   {[
                     { key: 'all', label: 'All Members' },
-                    { key: 'paid', label: 'Paid' },
-                    { key: 'unpaid', label: 'Unpaid' },
                     { key: 'unattended', label: 'Unattended' },
                     { key: 'active', label: 'Active' },
                     { key: 'admins', label: 'Admins' },
@@ -607,9 +600,10 @@ const Members = () => {
                 <h4 className="font-medium text-gray-900 mb-2">Member Excel File Format:</h4>
                 <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
                   <li>The Excel file should contain columns for member information</li>
-                  <li>Required fields: ID, Name, Contact Number, Date of Joining</li>
-                  <li>Optional fields: Date of Birth, Weight, Height, Blood Group</li>
-                  <li>The system will create new members or update existing ones based on ID</li>
+                  <li>Required fields: EmployeeCode, EmployeeName, ContactNo, DOJ</li>
+                  <li>Optional fields: DOB, Weight, Height, BloodGroup, PaymentMode</li>
+                  <li>PaymentMode values: Cash, UPI, Card, Bank Transfer, Cheque</li>
+                  <li>The system will create new members or update existing ones based on EmployeeCode</li>
                 </ul>
               </div>
               

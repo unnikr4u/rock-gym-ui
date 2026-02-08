@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { ArrowLeft, User, Phone, Calendar, Scale, Droplets } from 'lucide-react';
 import { memberService } from '../services/memberService';
@@ -9,6 +9,8 @@ import ErrorMessage from '../components/ErrorMessage';
 
 const MemberDetail = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo') || '/members';
 
   const { data: member, isLoading: loadingMember, error: memberError } = useQuery(
     ['member', id],
@@ -34,9 +36,9 @@ const MemberDetail = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <Link to="/members" className="btn-secondary flex items-center">
+        <Link to={returnTo} className="btn-secondary flex items-center">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Members
+          Back
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Member Details</h1>
@@ -101,56 +103,141 @@ const MemberDetail = () => {
 
           {/* Payment History */}
           <div className="card">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Payment History</h3>
-            {loadingPayments ? (
-              <LoadingSpinner />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="table-header">Due Date</th>
-                      <th className="table-header">Amount</th>
-                      <th className="table-header">Paid Amount</th>
-                      <th className="table-header">Status</th>
-                      <th className="table-header">Payment Mode</th>
-                      <th className="table-header">Paid On</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {paymentData.map((payment) => (
-                      <tr key={payment.id}>
-                        <td className="table-cell">
-                          {new Date(payment.dueDate).toLocaleDateString()}
-                        </td>
-                        <td className="table-cell">₹{payment.amount}</td>
-                        <td className="table-cell">₹{payment.paidAmount || 0}</td>
-                        <td className="table-cell">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              payment.isPaid
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {payment.isPaid ? 'Paid' : 'Pending'}
-                          </span>
-                        </td>
-                        <td className="table-cell">{payment.paymentMode || '-'}</td>
-                        <td className="table-cell">
-                          {payment.paidOn ? new Date(payment.paidOn).toLocaleDateString() : '-'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {paymentData.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">No payment records found</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-6">Payment History</h3>
+            
+            <div className="space-y-6">
+              {/* Admission Fee Section */}
+              <div>
+                <h4 className="text-md font-medium text-gray-800 mb-4">Admission Fee</h4>
+                {loadingPayments ? (
+                  <LoadingSpinner />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="table-header">Due Date</th>
+                          <th className="table-header">Expected Amount</th>
+                          <th className="table-header">Admission Fee</th>
+                          <th className="table-header">Advanced Amount</th>
+                          <th className="table-header">Paid Amount</th>
+                          <th className="table-header">Status</th>
+                          <th className="table-header">Payment Mode</th>
+                          <th className="table-header">Paid On</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {paymentData.filter(payment => payment.admissionFee).map((payment) => (
+                          <tr key={payment.id}>
+                            <td className="table-cell">
+                              {new Date(payment.dueDate).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </td>
+                            <td className="table-cell">₹{payment.amount}</td>
+                            <td className="table-cell">₹{payment.admissionAmount || 0}</td>
+                            <td className="table-cell">₹{payment.advancedAmount || 0}</td>
+                            <td className="table-cell">₹{payment.paidAmount || 0}</td>
+                            <td className="table-cell">
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  payment.paid
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {payment.paid ? 'Paid' : 'Pending'}
+                              </span>
+                            </td>
+                            <td className="table-cell">{payment.paymentMode || '-'}</td>
+                            <td className="table-cell">
+                              {payment.paidOn ? new Date(payment.paidOn).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              }) : '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {paymentData.filter(payment => payment.admissionFee).length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">No admission fee records found</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+
+              {/* Monthly Fees Section */}
+              <div>
+                <h4 className="text-md font-medium text-gray-800 mb-4">Monthly Fees</h4>
+                {loadingPayments ? (
+                  <LoadingSpinner />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="table-header">Due Date</th>
+                          <th className="table-header">Expected Amount</th>
+                          <th className="table-header">Admission Fee</th>
+                          <th className="table-header">Advanced Amount</th>
+                          <th className="table-header">Paid Amount</th>
+                          <th className="table-header">Status</th>
+                          <th className="table-header">Payment Mode</th>
+                          <th className="table-header">Paid On</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {paymentData.filter(payment => !payment.admissionFee).map((payment) => (
+                          <tr key={payment.id}>
+                            <td className="table-cell">
+                              {new Date(payment.dueDate).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </td>
+                            <td className="table-cell">₹{payment.amount}</td>
+                            <td className="table-cell">₹{payment.admissionAmount || 0}</td>
+                            <td className="table-cell">₹{payment.advancedAmount || 0}</td>
+                            <td className="table-cell">₹{payment.paidAmount || 0}</td>
+                            <td className="table-cell">
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  payment.paid
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {payment.paid ? 'Paid' : 'Pending'}
+                              </span>
+                            </td>
+                            <td className="table-cell">{payment.paymentMode || '-'}</td>
+                            <td className="table-cell">
+                              {payment.paidOn ? new Date(payment.paidOn).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              }) : '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {paymentData.filter(payment => !payment.admissionFee).length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">No monthly fee records found</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

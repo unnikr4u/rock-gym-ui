@@ -25,11 +25,11 @@ export const memberService = {
   // Get member by ID
   getMemberById: (id) => api.get(`/members/${id}`),
 
-  // Get paid members
-  getPaidMembers: () => api.get('/members/paid'),
+  // Get paid members count (current month paid payments, excluding admission fees)
+  getPaidMembers: () => api.get('/payments/count', { params: { pending: false } }),
 
-  // Get unpaid members
-  getUnpaidMembers: () => api.get('/members/unpaid'),
+  // Get unpaid members count (current month pending payments)
+  getUnpaidMembers: () => api.get('/payments/count', { params: { pending: true } }),
 
   // Get unattended members
   getUnattendedMembers: () => api.get('/members/unattended-members'),

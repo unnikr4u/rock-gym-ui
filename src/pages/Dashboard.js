@@ -40,7 +40,7 @@ const Dashboard = () => {
       icon: Users,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
-      link: '/members?filter=paid',
+      link: '/payments?paymentTab=paid',
       loading: loadingPaid,
     },
     {
@@ -49,7 +49,7 @@ const Dashboard = () => {
       icon: Users,
       color: 'text-red-600',
       bgColor: 'bg-red-100',
-      link: '/members?filter=unpaid',
+      link: '/payments?paymentTab=pending',
       loading: loadingUnpaid,
     },
     {

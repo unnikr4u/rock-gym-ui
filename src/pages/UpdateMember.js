@@ -25,7 +25,8 @@ const UpdateMember = () => {
     isAdmin: false,
     advanceInMonths: '',
     expiryFrom: '',
-    expiryTo: ''
+    expiryTo: '',
+    paymentMode: ''
   });
 
   const { data: memberData, isLoading, error } = useQuery(
@@ -49,7 +50,8 @@ const UpdateMember = () => {
           isAdmin: member.isAdmin || false,
           advanceInMonths: member.advanceInMonths || '',
           expiryFrom: member.expiryFrom || '',
-          expiryTo: member.expiryTo || ''
+          expiryTo: member.expiryTo || '',
+          paymentMode: member.paymentMode || ''
         });
       }
     }
@@ -371,6 +373,28 @@ const UpdateMember = () => {
                       className="input-field"
                       placeholder="Number of months paid in advance"
                     />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Mode
+                    </label>
+                    <select
+                      name="paymentMode"
+                      value={formData.paymentMode?.toUpperCase() || ''}
+                      onChange={handleInputChange}
+                      className="input-field"
+                    >
+                      <option value="">Select payment mode</option>
+                      <option value="CASH">Cash</option>
+                      <option value="UPI">UPI</option>
+                      <option value="CARD">Card</option>
+                      <option value="BANK TRANSFER">Bank Transfer</option>
+                      <option value="CHEQUE">Cheque</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Note: This is for initial admission payment only
+                    </p>
                   </div>
                   
                   <div>

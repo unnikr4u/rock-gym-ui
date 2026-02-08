@@ -10,7 +10,9 @@ import {
   MessageSquare, 
   Menu, 
   X,
-  Home
+  Home,
+  DollarSign,
+  UserCog
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -22,6 +24,8 @@ const Layout = ({ children }) => {
     { name: 'Members', href: '/members', icon: Users },
     { name: 'Attendance', href: '/attendance', icon: Clock },
     { name: 'Payments', href: '/payments', icon: CreditCard },
+    { name: 'Expenses', href: '/expenses', icon: DollarSign },
+    { name: 'Partners', href: '/partners', icon: UserCog },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
     { name: 'Birthdays', href: '/birthdays', icon: Calendar },
     { name: 'Holidays', href: '/holidays', icon: CalendarDays },

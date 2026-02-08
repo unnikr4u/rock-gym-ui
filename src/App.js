@@ -10,6 +10,8 @@ import DeleteMember from './pages/DeleteMember';
 import PunchRecords from './pages/PunchRecords';
 import Attendance from './pages/Attendance';
 import Payments from './pages/Payments';
+import Expenses from './pages/Expenses';
+import Partners from './pages/Partners';
 import Reports from './pages/Reports';
 import Birthdays from './pages/Birthdays';
 import Holidays from './pages/Holidays';
@@ -28,6 +30,8 @@ function App() {
         <Route path="/members/:id/punch-records" element={<PunchRecords />} />
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/payments" element={<Payments />} />
+        <Route path="/expenses" element={<Expenses />} />
+        <Route path="/partners" element={<Partners />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/birthdays" element={<Birthdays />} />
         <Route path="/holidays" element={<Holidays />} />

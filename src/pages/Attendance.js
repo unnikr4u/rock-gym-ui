@@ -14,7 +14,7 @@ const Attendance = () => {
   const tabParam = searchParams.get('tab');
   const filterParam = searchParams.get('filter');
   
-  const [activeTab, setActiveTab] = useState(tabParam || 'search'); // 'search', 'inactive', or 'active'
+  const [activeTab, setActiveTab] = useState(tabParam || 'search'); // 'search', 'inactive', 'active', or 'manage'
   const [uploadFile, setUploadFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   
@@ -370,37 +370,6 @@ const Attendance = () => {
           <h1 className="text-2xl font-bold text-gray-900">Attendance Management</h1>
           <p className="text-gray-600">Search attendance records and track inactive members</p>
         </div>
-        
-        {/* Upload Section - Only show on search tab */}
-        {activeTab === 'search' && (
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={(e) => setUploadFile(e.target.files[0])}
-                className="hidden"
-                id="punch-upload"
-              />
-              <label
-                htmlFor="punch-upload"
-                className="btn-secondary cursor-pointer flex items-center"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Choose Punch File
-              </label>
-              {uploadFile && (
-                <button
-                  onClick={handleFileUpload}
-                  disabled={uploading}
-                  className="btn-primary"
-                >
-                  {uploading ? 'Uploading...' : 'Upload'}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Tab Navigation */}
@@ -438,6 +407,17 @@ const Attendance = () => {
           >
             <CheckCircle className="h-4 w-4 inline mr-2" />
             Active Members
+          </button>
+          <button
+            onClick={() => handleTabChange('manage')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'manage'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Upload className="h-4 w-4 inline mr-2" />
+            Manage Attendance
           </button>
         </nav>
       </div>
@@ -1061,6 +1041,49 @@ const Attendance = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Manage Attendance Tab */}
+      {activeTab === 'manage' && (
+        <div className="card">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Upload Punch Data from Excel</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Excel File
+              </label>
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={(e) => setUploadFile(e.target.files[0])}
+                className="input-field"
+                id="punch-upload-manage"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Upload punch data from Excel file
+              </p>
+            </div>
+            {uploadFile && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Selected: {uploadFile.name}</span>
+                <button
+                  onClick={() => setUploadFile(null)}
+                  className="text-red-600 hover:text-red-800 text-sm"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+            <button
+              onClick={handleFileUpload}
+              disabled={!uploadFile || uploading}
+              className="btn-primary flex items-center"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {uploading ? 'Uploading...' : 'Upload Punch Data'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

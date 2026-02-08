@@ -21,7 +21,8 @@ const CreateMember = () => {
     isAdmin: false,
     advanceInMonths: '',
     expiryFrom: '',
-    expiryTo: ''
+    expiryTo: '',
+    paymentMode: ''
   });
 
   const handleInputChange = (e) => {
@@ -293,6 +294,25 @@ const CreateMember = () => {
                     className="input-field"
                     placeholder="Number of months paid in advance"
                   />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Mode
+                  </label>
+                  <select
+                    name="paymentMode"
+                    value={formData.paymentMode}
+                    onChange={handleInputChange}
+                    className="input-field"
+                  >
+                    <option value="">Select payment mode</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Card">Card</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Cheque">Cheque</option>
+                  </select>
                 </div>
                 
                 <div>
