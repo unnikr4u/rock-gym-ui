@@ -16,6 +16,7 @@ import Reports from './pages/Reports';
 import Birthdays from './pages/Birthdays';
 import Holidays from './pages/Holidays';
 import WhatsApp from './pages/WhatsApp';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/birthdays" element={<Birthdays />} />
         <Route path="/holidays" element={<Holidays />} />
         <Route path="/whatsapp" element={<WhatsApp />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </Layout>
   );

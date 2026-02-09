@@ -12,7 +12,8 @@ import {
   X,
   Home,
   DollarSign,
-  UserCog
+  UserCog,
+  Settings
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -27,6 +28,7 @@ const Layout = ({ children }) => {
     { name: 'Expenses', href: '/expenses', icon: DollarSign },
     { name: 'Partners', href: '/partners', icon: UserCog },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: 'Settings', href: '/settings', icon: Settings },
     { name: 'Birthdays', href: '/birthdays', icon: Calendar },
     { name: 'Holidays', href: '/holidays', icon: CalendarDays },
     { name: 'WhatsApp', href: '/whatsapp', icon: MessageSquare },
