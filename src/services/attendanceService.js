@@ -177,44 +177,19 @@ export const attendanceService = {
     return api.get('/punch/test-all-punches');
   },
 
-  // Active Members Service Methods
-  getActiveToday: () => {
-    return api.get('/report/active-today');
-  },
+  // ========== CONSOLIDATED METHODS (NEW - Optimized) ==========
 
-  getActiveTodayPaginated: (page = 0, size = 10) => {
-    return api.get('/report/active-today-paginated', { 
-      params: { page, size } 
-    });
-  },
-
-  getActiveLast7Days: () => {
-    return api.get('/report/active-last-7-days');
-  },
-
-  getActiveLast7DaysPaginated: (page = 0, size = 10) => {
-    return api.get('/report/active-last-7-days-paginated', { 
-      params: { page, size } 
-    });
-  },
-
-  getActiveLast30Days: () => {
-    return api.get('/report/active-last-30-days');
-  },
-
-  getActiveLast30DaysPaginated: (page = 0, size = 10) => {
-    return api.get('/report/active-last-30-days-paginated', { 
-      params: { page, size } 
-    });
-  },
-
-  getActiveThisMonth: () => {
-    return api.get('/report/active-this-month');
-  },
-
-  getActiveThisMonthPaginated: (page = 0, size = 10) => {
-    return api.get('/report/active-this-month-paginated', { 
-      params: { page, size } 
+  /**
+   * Get active employees using consolidated endpoint.
+   * @param {string} period - Time period: 'today', 'last-7-days', 'last-30-days', 'this-month'
+   * @param {boolean} paginated - Enable pagination
+   * @param {number} page - Page number (0-based)
+   * @param {number} size - Page size
+   * @returns {Promise} API response
+   */
+  getActiveEmployees: (period, paginated = false, page = 0, size = 10) => {
+    return api.get('/report/active', {
+      params: { period, paginated, page, size }
     });
   },
 

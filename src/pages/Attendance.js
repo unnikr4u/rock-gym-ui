@@ -199,23 +199,19 @@ const Attendance = () => {
     setIsActiveLoading(true);
     
     try {
-      let response;
-      switch (type) {
-        case 'today':
-          response = await attendanceService.getActiveTodayPaginated(page, activePageSize);
-          break;
-        case '7days':
-          response = await attendanceService.getActiveLast7DaysPaginated(page, activePageSize);
-          break;
-        case '30days':
-          response = await attendanceService.getActiveLast30DaysPaginated(page, activePageSize);
-          break;
-        case 'thismonth':
-          response = await attendanceService.getActiveThisMonthPaginated(page, activePageSize);
-          break;
-        default:
-          return;
-      }
+      // Map UI filter types to API period values
+      const periodMap = {
+        'today': 'today',
+        '7days': 'last-7-days',
+        '30days': 'last-30-days',
+        'thismonth': 'this-month'
+      };
+      
+      const period = periodMap[type];
+      if (!period) return;
+      
+      // Use consolidated endpoint
+      const response = await attendanceService.getActiveEmployees(period, true, page, activePageSize);
       
       if (response?.data) {
         setActiveResults(response.data);
