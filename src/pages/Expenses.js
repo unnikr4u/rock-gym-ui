@@ -21,7 +21,7 @@ const Expenses = () => {
     expenseName: '',
     amount: '',
     date: new Date().toISOString().split('T')[0],
-    paidByEmployeeId: '',
+    paidBy: 'BANK',
     remarks: ''
   });
 
@@ -36,8 +36,7 @@ const Expenses = () => {
     try {
       const expenseData = {
         ...expenseForm,
-        amount: parseFloat(expenseForm.amount),
-        paidByEmployeeId: expenseForm.paidByEmployeeId ? parseInt(expenseForm.paidByEmployeeId) : null
+        amount: parseFloat(expenseForm.amount)
       };
 
       if (editingExpense) {
@@ -54,7 +53,7 @@ const Expenses = () => {
         expenseName: '',
         amount: '',
         date: new Date().toISOString().split('T')[0],
-        paidByEmployeeId: '',
+        paidBy: 'BANK',
         remarks: ''
       });
       refetch();
@@ -69,7 +68,7 @@ const Expenses = () => {
       expenseName: expense.expenseName,
       amount: expense.amount,
       date: expense.date,
-      paidByEmployeeId: expense.paidByEmployeeId || '',
+      paidBy: expense.paidBy || 'BANK',
       remarks: expense.remarks || ''
     });
     setShowExpenseForm(true);
@@ -200,7 +199,14 @@ const Expenses = () => {
           </div>
 
           <div className="card">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">All Expenses</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            All Expenses
+            {!isLoading && expenses?.data?.data && (
+              <span className="ml-3 text-blue-600">
+                (Total: ₹{expenses.data.data.reduce((sum, expense) => sum + (expense.amount || 0), 0).toFixed(2)})
+              </span>
+            )}
+          </h3>
 
           {isLoading ? (
             <LoadingSpinner />
@@ -226,8 +232,7 @@ const Expenses = () => {
                       <td className="table-cell font-medium">{expense.expenseName}</td>
                       <td className="table-cell">₹{expense.amount?.toFixed(2)}</td>
                       <td className="table-cell">
-                        {expense.paidByEmployeeName || '-'}
-                        {expense.paidByEmployeeId && ` (ID: ${expense.paidByEmployeeId})`}
+                        {expense.paidByName || '-'}
                       </td>
                       <td className="table-cell">{expense.remarks || '-'}</td>
                       <td className="table-cell">
@@ -290,7 +295,7 @@ const Expenses = () => {
                     expenseName: '',
                     amount: '',
                     date: new Date().toISOString().split('T')[0],
-                    paidByEmployeeId: '',
+                    paidBy: 'BANK',
                     remarks: ''
                   });
                   setShowExpenseForm(true);
@@ -321,7 +326,7 @@ const Expenses = () => {
                 className="input-field"
               />
               <p className="text-sm text-gray-500 mt-2">
-                Excel should have columns: EXPENSES, AMOUNT, Date, PaidBy(employeeId)
+                Excel should have columns: EXPENSES, AMOUNT, Date, PaidBy (use "BANK" or employee ID)
               </p>
             </div>
             <button
@@ -381,15 +386,19 @@ const Expenses = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Paid By (Employee ID)
+                  Paid By
                 </label>
                 <input
-                  type="number"
-                  value={expenseForm.paidByEmployeeId}
-                  onChange={(e) => handleInputChange('paidByEmployeeId', e.target.value)}
+                  type="text"
+                  required
+                  value={expenseForm.paidBy}
+                  onChange={(e) => handleInputChange('paidBy', e.target.value)}
                   className="input-field"
-                  placeholder="Optional"
+                  placeholder="Enter 'BANK' or Partner Employee ID"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Use "BANK" for gym bank expenses or enter partner's employee ID
+                </p>
               </div>
 
               <div>
