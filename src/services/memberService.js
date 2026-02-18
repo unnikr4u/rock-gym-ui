@@ -56,13 +56,51 @@ export const memberService = {
   },
 
   // Create new member
-  createMember: (memberData) => {
-    return api.post('/members', memberData);
+  createMember: (memberData, photoFile = null) => {
+    const formData = new FormData();
+    
+    // Append all member data fields
+    Object.keys(memberData).forEach(key => {
+      if (memberData[key] !== null && memberData[key] !== undefined && memberData[key] !== '') {
+        formData.append(key, memberData[key]);
+      }
+    });
+    
+    // Append photo if provided
+    if (photoFile) {
+      formData.append('photo', photoFile);
+    }
+    
+    // Override default Content-Type header for multipart/form-data
+    return api.post('/members', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 
   // Update existing member
-  updateMember: (memberId, memberData) => {
-    return api.put(`/members/${memberId}`, memberData);
+  updateMember: (memberId, memberData, photoFile = null) => {
+    const formData = new FormData();
+    
+    // Append all member data fields
+    Object.keys(memberData).forEach(key => {
+      if (memberData[key] !== null && memberData[key] !== undefined && memberData[key] !== '') {
+        formData.append(key, memberData[key]);
+      }
+    });
+    
+    // Append photo if provided
+    if (photoFile) {
+      formData.append('photo', photoFile);
+    }
+    
+    // Override default Content-Type header for multipart/form-data
+    return api.put(`/members/${memberId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 
   // Delete member

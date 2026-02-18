@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import { ArrowLeft, User, Phone, Calendar, Scale, Droplets } from 'lucide-react';
+import { ArrowLeft, User, Phone, Calendar, Scale, Droplets, Camera, Edit } from 'lucide-react';
 import { memberService } from '../services/memberService';
 import { paymentService } from '../services/paymentService';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -33,17 +33,31 @@ const MemberDetail = () => {
   const memberData = member?.data;
   const paymentData = payments?.data || [];
 
+  // Construct photo URL if photo exists
+  const photoUrl = memberData?.photoUrl 
+    ? `http://localhost:9090/rockgymapp/api/files/employee-photos/${memberData.photoUrl.split('/').pop()}`
+    : null;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <Link to={returnTo} className="btn-secondary flex items-center">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Member Details</h1>
-          <p className="text-gray-600">View member information and payment history</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Link to={returnTo} className="btn-secondary flex items-center">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Member Details</h1>
+            <p className="text-gray-600">View member information and payment history</p>
+          </div>
         </div>
+        <Link 
+          to={`/members/update?id=${id}`}
+          className="btn-primary flex items-center"
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Edit Member
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -243,6 +257,31 @@ const MemberDetail = () => {
 
         {/* Membership Status */}
         <div className="space-y-6">
+          {/* Member Photo */}
+          <div className="card">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Member Photo</h3>
+            <div className="flex justify-center">
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt={memberData?.name}
+                  className="w-48 h-48 object-cover rounded-lg shadow-md"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f3f4f6" width="200" height="200"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="16" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo Photo%3C/text%3E%3C/svg%3E';
+                  }}
+                />
+              ) : (
+                <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <Camera className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No photo uploaded</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="card">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Membership Status</h3>
             <div className="space-y-4">

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, User, Phone, Calendar, Scale, Ruler, Droplets, DollarSign } from 'lucide-react';
+import { ArrowLeft, Save, User, Phone, Calendar, Scale, Ruler, Droplets, DollarSign, Camera, X } from 'lucide-react';
 import { memberService } from '../services/memberService';
 import { toast } from 'react-toastify';
 
 const CreateMember = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -31,6 +33,38 @@ const CreateMember = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please select a valid image file (JPG, PNG, or GIF)');
+        return;
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+
+      setPhotoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
   };
 
   const handleSubmit = async (e) => {
@@ -58,7 +92,7 @@ const CreateMember = () => {
         expiryTo: formData.expiryTo || null
       };
 
-      await memberService.createMember(memberData);
+      await memberService.createMember(memberData, photoFile);
       toast.success('Member created successfully!');
       navigate('/members');
     } catch (error) {
@@ -261,6 +295,50 @@ const CreateMember = () => {
 
           {/* Membership Details */}
           <div className="space-y-6">
+            {/* Photo Upload */}
+            <div className="card">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Member Photo</h3>
+              <div className="space-y-4">
+                {photoPreview ? (
+                  <div className="relative">
+                    <img
+                      src={photoPreview}
+                      alt="Member preview"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemovePhoto}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+                    <Camera className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="mt-2">
+                      <label htmlFor="photo-upload" className="cursor-pointer">
+                        <span className="text-primary-600 hover:text-primary-700 font-medium">
+                          Upload a photo
+                        </span>
+                        <input
+                          id="photo-upload"
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/gif"
+                          onChange={handlePhotoChange}
+                          className="sr-only"
+                        />
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      JPG, PNG or GIF (max 5MB)
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="card">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Membership Details</h3>
               <div className="space-y-4">
