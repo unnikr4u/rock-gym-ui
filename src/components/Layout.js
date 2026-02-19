@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { 
   Users, 
   Clock, 
@@ -13,12 +13,15 @@ import {
   Home,
   DollarSign,
   UserCog,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react';
+import authService from '../services/authService';
 
-const Layout = ({ children }) => {
+const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -40,6 +43,13 @@ const Layout = ({ children }) => {
     }
     return location.pathname.startsWith(href);
   };
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+  };
+
+  const currentUser = authService.getCurrentUser();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,6 +83,15 @@ const Layout = ({ children }) => {
               );
             })}
           </nav>
+          <div className="border-t border-gray-200 p-4">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md"
+            >
+              <LogOut className="mr-3 h-5 w-5" />
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 
@@ -101,6 +120,19 @@ const Layout = ({ children }) => {
               );
             })}
           </nav>
+          <div className="border-t border-gray-200 p-4">
+            <div className="mb-2 px-2">
+              <p className="text-sm font-medium text-gray-900">{currentUser?.fullName}</p>
+              <p className="text-xs text-gray-500">{currentUser?.username}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md"
+            >
+              <LogOut className="mr-3 h-5 w-5" />
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 
@@ -127,7 +159,7 @@ const Layout = ({ children }) => {
         {/* Page content */}
         <main className="py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {children}
+            <Outlet />
           </div>
         </main>
       </div>
