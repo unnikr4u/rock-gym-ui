@@ -1,13 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
+import api from '../services/api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [captcha, setCaptcha] = useState(null);
+  const [requiresCaptcha, setRequiresCaptcha] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const fetchCaptcha = async () => {
+    try {
+      const response = await api.get('/auth/captcha');
+      setCaptcha(response.data);
+      setCaptchaAnswer('');
+    } catch (err) {
+      console.error('Failed to fetch captcha:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (requiresCaptcha) {
+      fetchCaptcha();
+    }
+  }, [requiresCaptcha]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,10 +35,25 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await authService.login(username, password);
+      const loginData = {
+        username,
+        password,
+      };
+
+      if (requiresCaptcha && captcha) {
+        loginData.captchaId = captcha.captchaId;
+        loginData.captchaAnswer = parseInt(captchaAnswer);
+      }
+
+      await authService.login(loginData.username, loginData.password, loginData.captchaId, loginData.captchaAnswer);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      const errorData = err.response?.data;
+      setError(errorData?.error || 'Login failed. Please try again.');
+      
+      if (errorData?.requiresCaptcha) {
+        setRequiresCaptcha(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -67,6 +102,32 @@ const Login = () => {
               required
             />
           </div>
+
+          {requiresCaptcha && captcha && (
+            <div className="mb-6">
+              <label htmlFor="captcha" className="block text-gray-700 font-medium mb-2">
+                Security Check: {captcha.question}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  id="captcha"
+                  value={captchaAnswer}
+                  onChange={(e) => setCaptchaAnswer(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  placeholder="Enter answer"
+                />
+                <button
+                  type="button"
+                  onClick={fetchCaptcha}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"

@@ -3,11 +3,15 @@ import api from './api';
 const AUTH_API_URL = '/auth';
 
 const authService = {
-  login: async (username, password) => {
-    const response = await api.post(`${AUTH_API_URL}/login`, {
-      username,
-      password,
-    });
+  login: async (username, password, captchaId, captchaAnswer) => {
+    const loginData = { username, password };
+    
+    if (captchaId && captchaAnswer !== undefined) {
+      loginData.captchaId = captchaId;
+      loginData.captchaAnswer = captchaAnswer;
+    }
+    
+    const response = await api.post(`${AUTH_API_URL}/login`, loginData);
     
     if (response.data.accessToken) {
       localStorage.setItem('token', response.data.accessToken);
@@ -17,6 +21,15 @@ const authService = {
       }));
     }
     
+    return response.data;
+  },
+
+  changePassword: async (currentPassword, newPassword, confirmPassword) => {
+    const response = await api.post(`${AUTH_API_URL}/change-password`, {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    });
     return response.data;
   },
 

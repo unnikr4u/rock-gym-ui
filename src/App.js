@@ -1,8 +1,9 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import ChangePassword from './pages/ChangePassword';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import MemberDetail from './pages/MemberDetail';
@@ -22,6 +23,47 @@ import Settings from './pages/Settings';
 import authService from './services/authService';
 
 function App() {
+  const [isChecking, setIsChecking] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if token is valid on app load
+    const checkAuth = async () => {
+      if (authService.isAuthenticated()) {
+        try {
+          // Try to fetch current user to validate token
+          const response = await fetch('http://localhost:9090/rockgymapp/api/auth/me', {
+            headers: {
+              'Authorization': `Bearer ${authService.getToken()}`
+            }
+          });
+          
+          if (!response.ok) {
+            // Token is invalid, clear it
+            authService.logout();
+          }
+        } catch (error) {
+          // Network error or invalid token
+          authService.logout();
+        }
+      }
+      setIsChecking(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/login" element={
@@ -34,6 +76,7 @@ function App() {
         </ProtectedRoute>
       }>
         <Route index element={<Dashboard />} />
+        <Route path="change-password" element={<ChangePassword />} />
         <Route path="members" element={<Members />} />
         <Route path="members/create" element={<CreateMember />} />
         <Route path="members/update" element={<UpdateMember />} />
