@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
@@ -24,7 +24,6 @@ import authService from './services/authService';
 
 function App() {
   const [isChecking, setIsChecking] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if token is valid on app load
